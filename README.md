@@ -26,7 +26,7 @@ $ docker stack deploy -c docker-compose.yml grpc_service
 Test restful api with curl:
 
 ```
-curl localhost:8080/echo -4 -X POST -H "Content-Type:application/json" -d '{"input": "testdata/small.wav"}'
+curl localhost:8080/get -4 -X POST -H "Content-Type:application/json" -d '{"input": "testdata/small.wav"}'
 ```
 
 To shutdown:
