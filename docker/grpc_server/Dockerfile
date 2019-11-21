@@ -65,6 +65,7 @@ RUN git clone -b v1.17.1 https://github.com/grpc/grpc /github/grpc && \
     cmake -H./cmake -Bbuild -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_BUILD_SHARED_LIBS=ON && \
     cmake --build build && \
     cmake --build build --target install && \
+    ldconfig && \
     cd ../../ && \
     rm -rf third_party/protobuf && \
     \
