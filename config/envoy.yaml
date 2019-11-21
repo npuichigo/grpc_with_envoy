@@ -59,4 +59,4 @@ static_resources:
         keepalive_time: 300
         keepalive_interval: 30
         keepalive_probes: 10
-    per_connection_buffer_limit_bytes: 1048576
+    per_connection_buffer_limit_bytes: 2097152
