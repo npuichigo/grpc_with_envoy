@@ -51,14 +51,19 @@ class DemoClient {
     // the server and/or tweak certain RPC behaviors.
     ClientContext context;
 
+    std::unique_ptr<ClientReader<::google::api::HttpBody>> reader(
+        stub_->GetSomething(&context, request));
+
     // The actual RPC.
-    Status status = stub_->GetSomething(&context, request, &reply);
+    std::ofstream output("grpc_client_test.wav", std::ofstream::binary);
+    while (reader->Read(&reply)) {
+      output << reply.data();
+    }
+    Status status = reader->Finish();
+    output.close();
 
     if (status.ok()) {
       LOG(INFO) << "GetSomething rpc succeeded.";
-      std::ofstream output("grpc_client_test.wav", std::ofstream::binary);
-      output << reply.data();
-      output.close();
     } else {
       LOG(ERROR) << "GetSomething rpc failed.";
     }

@@ -14,7 +14,7 @@
 #
 # Author: ASLP@NPU
 
-FROM envoyproxy/envoy:latest AS build
+FROM envoyproxy/envoy-dev:latest AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
        curl \
@@ -39,7 +39,7 @@ RUN mkdir /data && \
         --descriptor_set_out=/data/demo_service_definition.pb \
         demo_service.proto
 
-FROM envoyproxy/envoy:latest
+FROM envoyproxy/envoy-dev:latest
 COPY --from=build /data/demo_service_definition.pb  /data/demo_service_definition.pb
 
-CMD /usr/local/bin/envoy -c /etc/envoy/envoy.yaml -l trace --log-path /tmp/envoy_info.log
+CMD /usr/local/bin/envoy -c /etc/envoy/envoy.yaml

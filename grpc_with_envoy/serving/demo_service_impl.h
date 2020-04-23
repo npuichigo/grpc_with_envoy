@@ -31,9 +31,10 @@ namespace serving {
 // Logic and data behind the server's behavior.
 class DemoServiceImpl final : public Demo::Service {
  public:
-  ::grpc::Status GetSomething(::grpc::ServerContext* context,
-                              const GetRequest* request,
-                              ::google::api::HttpBody* reply) override;
+  ::grpc::Status GetSomething(
+      ::grpc::ServerContext* context,
+      const GetRequest* request,
+      ::grpc::ServerWriter<::google::api::HttpBody>* writer) override;
 };
 
 }  // namespace serving

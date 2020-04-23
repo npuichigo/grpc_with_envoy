@@ -26,22 +26,58 @@
 namespace grpc_with_envoy {
 namespace serving {
 
+using Callback = std::function<bool(const void* value, size_t size)>;
+
+static const int kBufferSize = 64 * 1024;
+
+static bool ReadFile(const std::string& filename, Callback callback) {
+  std::ifstream input(filename, std::ifstream::binary);
+  if (!input)
+    return false;
+  int byte_read = 0;
+  char buffer[kBufferSize];
+  while (!input.eof()) {
+    input.read(buffer, kBufferSize);
+    byte_read = input.gcount();
+    if (!callback(buffer, byte_read)) {
+      LOG(INFO) << "Callback failed";
+      return false;
+    }
+    LOG(INFO) << "Send " << byte_read << " bytes";
+    usleep(100 * 1000);
+  }
+  input.close();
+  return true;
+}
+
 ::grpc::Status DemoServiceImpl::GetSomething(
     ::grpc::ServerContext* context,
     const GetRequest* request,
-    ::google::api::HttpBody* reply) {
-  auto wav_filename = request->filename();
-  LOG(INFO) << "Get audio from grpc server: " << wav_filename;
+    ::grpc::ServerWriter<::google::api::HttpBody>* writer) {
+  auto filename = request->filename();
+  LOG(INFO) << "Get audio from grpc server: " << filename;
 
-  std::ifstream input_file(wav_filename, std::ifstream::binary);
-  std::ostringstream oss;
-  oss << input_file.rdbuf();
-  std::string data(oss.str());
-  input_file.close();
+  std::string extension = filename.substr(filename.find_last_of(".") + 1);
+  std::string content_type;
+  if (extension == "mp3")
+    content_type = "audio/mp3";
+  else if (extension == "wav")
+    content_type = "audio/wav";
+  else
+    content_type = "application/json";
+  LOG(INFO) << content_type;
 
-  reply->set_content_type("audio/wav");
-  reply->set_data(data.c_str(), data.size());
-  return ::grpc::Status::OK;
+  bool ok = ReadFile(filename, [&](const void* value, size_t size) -> bool {
+    ::google::api::HttpBody reply;
+    reply.set_content_type(content_type);
+    reply.set_data(value, size);
+    return writer->Write(reply);
+  });
+
+  if (!ok)
+    return ::grpc::Status::CANCELLED;
+  else
+    return ::grpc::Status::OK;
 }
 
 }  // namespace serving
